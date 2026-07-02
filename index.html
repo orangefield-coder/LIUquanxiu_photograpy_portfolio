@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quanxiu Liu — Photography Portfolio</title>
+
+<!-- 衬线标题字体(可替换):Playfair Display。想换字体改这一行 + CSS 里的 font-family 即可 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   摄影作品集 · 封面(参考 Codrops Scroll3DGrid - type1)
+   交互:鼠标滚轮驱动,图片绕 Y 轴飞散
+   图片槽:见 <section class="content"> 里的 .grid__item,共 26 个(横/竖混排)
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --color-bg: #000;
+  --color-text: #f4f2ee;
+}
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: "Inter", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 加载时隐藏内容,避免飞散动画闪现 */
+body.loading { opacity: 0; }
+body { transition: opacity .6s ease; }
+
+a { color: inherit; text-decoration: none; }
+
+/* ---------- 顶部品牌条 ---------- */
+.frame {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.6rem 2.2rem;
+  font-size: .82rem;
+  letter-spacing: .04em;
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+.frame a, .frame span { pointer-events: auto; }
+.frame__brand { font-weight: 500; letter-spacing: .12em; text-transform: uppercase; }
+.frame__nav a { margin-left: 1.6rem; opacity: .7; }
+.frame__nav a:hover { opacity: 1; }
+
+/* ---------- 开场(给滚动留出距离,让飞散从头播放) ---------- */
+/* 顶部留白:封面网格飞散动画的滚动起跑距离(原 .intro 开场页已移除) */
+.cover-lead { height: 18vh; }
+
+/* ============================================================
+   3D 飞散网格(type1)
+   ============================================================ */
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 14vh 0;
+}
+
+.grid {
+  /* JS 会覆盖这两个,这里写默认值兜底 */
+  --perspective: 1000px;
+  --grid-inner-scale: 0.5;
+  /* 起始排布(可微调) */
+  --grid-columns: 8;
+  --grid-width: 120%;
+  --grid-gap: 1.1vw;
+
+  perspective: var(--perspective);
+  position: relative;
+}
+
+.grid-wrap {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--grid-width);
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  gap: var(--grid-gap);
+  place-items: center;
+  transform-style: preserve-3d;
+}
+
+/* 单个图片框(横版默认) */
+.grid__item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--r, 1.5);   /* 宽/高:1.5 = 横版 */
+  overflow: hidden;
+  border-radius: 7px;
+  will-change: transform;
+}
+/* 竖版槽位 */
+.grid__item--v { --r: 0.72; }
+/* 方形槽位(如需要) */
+.grid__item--s { --r: 1; }
+
+/* 图片本体:与框同尺寸(100%),用 contain 完整显示不裁切;框比例已=图片比例,故无留白 */
+.grid__item-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0c0d10;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  will-change: transform;
+}
+
+/* —— 空槽占位外观(填了图会被 inline 的 background-image 覆盖) —— */
+.grid__item-inner:nth-of-type(1) { } /* 占位:不同槽给点深色变化,方便看清纵深 */
+.grid__item:nth-child(6n+1) .grid__item-inner { background-image: linear-gradient(135deg,#1a2730,#0c1217); }
+.grid__item:nth-child(6n+2) .grid__item-inner { background-image: linear-gradient(135deg,#2a2230,#140f17); }
+.grid__item:nth-child(6n+3) .grid__item-inner { background-image: linear-gradient(135deg,#2c2a1d,#15140d); }
+.grid__item:nth-child(6n+4) .grid__item-inner { background-image: linear-gradient(135deg,#1d2a2a,#0d1414); }
+.grid__item:nth-child(6n+5) .grid__item-inner { background-image: linear-gradient(135deg,#2a1d22,#140d10); }
+.grid__item:nth-child(6n)   .grid__item-inner { background-image: linear-gradient(135deg,#242833,#0f1116); }
+
+/* 编号 + 横/竖标注(填好图后给该 inner 加 class "filled" 即可隐藏) */
+.grid__item-inner::after {
+  content: attr(data-slot);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter", sans-serif;
+  font-size: .9rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  color: rgba(255,255,255,.35);
+  text-align: center;
+  white-space: pre;
+}
+.grid__item-inner.filled::after { display: none; }
+
+/* ---------- 叠在网格上的大标题 ---------- */
+.content__title {
+  position: absolute;
+  z-index: 10;
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 500;
+  line-height: 1.02;
+  pointer-events: none;
+  text-shadow: 0 4px 40px rgba(0,0,0,.6);
+}
+.content__title--right { right: 6vw; text-align: right; }
+/* 标题竖向落在图片群最密集处的中间(网格被 .content 垂直居中,故取 50%) */
+.content__title--top   { top: 40%; transform: translateY(-50%); }
+
+/* 第1行 · 名字(主标题,放大) */
+.title-name {
+  display: block;
+  font-size: clamp(3rem, 7.6vw, 7.2rem);
+  line-height: 1.0;
+}
+/* 第2行 · 副标题(小一点、略透明) */
+.title-sub {
+  display: block;
+  margin-top: 1rem;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: clamp(.9rem, 1.5vw, 1.15rem);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  opacity: .62;
+}
+/* 第3行 · View Portfolio(文字 + 轻微浮动下箭头,引导下滑) */
+.title-cta {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;           /* 右对齐,与上方两行右缘对齐 */
+  margin-top: 4rem;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: clamp(.78rem, 1.1vw, .92rem);
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  opacity: .82;
+}
+.title-cta__arrow {
+  width: 22px; height: 22px;
+  margin-top: 1rem;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: cue-float 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .title-cta__arrow { animation: none; }
+}
+
+/* 底部留白,保证滚动行程足够把动画播完(收窄,让封面与画廊更紧凑) */
+.tail { height: 24vh; }
+
+@keyframes cue-float {
+  0%, 100% { transform: translateY(0);    opacity: .5;  }
+  50%      { transform: translateY(9px);  opacity: .9;  }
+}
+
+/* ============================================================
+   第二屏 · 银河画廊(Three.js WebGL,改造自“可交互艺术画廊”)
+   ============================================================ */
+.galaxy {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 55%, #0a0a0c 0%, #000 72%);
+}
+.galaxy__canvas { position: absolute; inset: 0; }
+.galaxy__canvas canvas { display: block; }
+
+/* 覆盖在 canvas 上的文字层(不挡鼠标) */
+.galaxy__ui { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+
+/* 打开影集后的 UI(默认隐藏,album-open 时淡入) */
+.galaxy__count {
+  position: absolute; bottom: 7vh; left: 0; right: 0; text-align: center;
+  font-size: .8rem; letter-spacing: .3em; opacity: 0; transition: opacity .5s ease;
+}
+.galaxy__hint {
+  position: absolute; bottom: 7vh; right: 4vw; font-size: .72rem;
+  letter-spacing: .12em; opacity: 0; transition: opacity .5s ease;
+}
+.galaxy__close {
+  position: absolute; top: 4vh; right: 4vw; width: 46px; height: 46px;
+  border: 1px solid rgba(255,255,255,.4); border-radius: 50%;
+  background: transparent; color: #fff; font-size: 1.2rem; cursor: pointer;
+  pointer-events: auto; opacity: 0;
+  transition: opacity .5s ease, background .3s, transform .3s;
+}
+.galaxy__close:hover { background: rgba(255,255,255,.12); transform: rotate(90deg); }
+
+.galaxy.album-open .galaxy__count,
+.galaxy.album-open .galaxy__hint,
+.galaxy.album-open .galaxy__close { opacity: 1; }
+
+/* ---------- 小屏适配 ---------- */
+@media (max-width: 768px) {
+  .grid { --grid-columns: 5; --grid-width: 150%; }
+  .content__title--right { right: 5vw; left: 5vw; text-align: right; }
+}
+</style>
+<!-- 银河画廊依赖:Three.js (r128) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body class="loading">
+
+  <!-- 顶部品牌条 -->
+  <header class="frame">
+    <span class="frame__brand">Quanxiu&nbsp;Liu</span>
+  </header>
+
+  <!-- 顶部留白:给封面网格飞散动画一点滚动起跑距离(原开场页已移除) -->
+  <div class="cover-lead"></div>
+
+  <!-- ============================================================
+       封面飞散网格 · 26 张精选(横/竖按图片实际比例混排)
+       图片在 img/gallery/ (g01.jpg ~ g26.jpg)。
+       换图:替换对应 g??.jpg,横图用 .grid__item,竖图用 .grid__item.grid__item--v
+       ============================================================ -->
+  <section class="content" id="work">
+    <div class="grid grid--cover">
+      <div class="grid-wrap">
+        <div class="grid__item" style="--r:1.461"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g01.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.75"> <div class="grid__item-inner filled" style="background-image:url(img/gallery/g04.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.461"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g02.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.667"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g06.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.508"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g03.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.5">  <div class="grid__item-inner filled" style="background-image:url(img/gallery/g05.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.667"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g10.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.5">  <div class="grid__item-inner filled" style="background-image:url(img/gallery/g07.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.667"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g13.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.5">  <div class="grid__item-inner filled" style="background-image:url(img/gallery/g08.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.5">  <div class="grid__item-inner filled" style="background-image:url(img/gallery/g09.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.667"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g15.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.5">  <div class="grid__item-inner filled" style="background-image:url(img/gallery/g11.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.667"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g16.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.5">  <div class="grid__item-inner filled" style="background-image:url(img/gallery/g12.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.5">  <div class="grid__item-inner filled" style="background-image:url(img/gallery/g14.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.667"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g17.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.5">  <div class="grid__item-inner filled" style="background-image:url(img/gallery/g18.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.667"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g20.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.5">  <div class="grid__item-inner filled" style="background-image:url(img/gallery/g19.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.667"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g21.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.5">  <div class="grid__item-inner filled" style="background-image:url(img/gallery/g22.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.75"> <div class="grid__item-inner filled" style="background-image:url(img/gallery/g23.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.491"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g24.jpg)"></div></div>
+        <div class="grid__item" style="--r:0.671"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g25.jpg)"></div></div>
+        <div class="grid__item" style="--r:1.491"><div class="grid__item-inner filled" style="background-image:url(img/gallery/g26.jpg)"></div></div>
+      </div>
+    </div>
+
+    <h3 class="content__title content__title--right content__title--top">
+      <span class="title-name">Quanxiu&nbsp;Liu</span>
+      <span class="title-sub">Portrait&nbsp;Photography</span>
+      <span class="title-cta">
+        View&nbsp;Portfolio
+        <svg class="title-cta__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </span>
+    </h3>
+  </section>
+
+  <div class="tail"></div>
+
+  <!-- ============================================================
+       第二屏 · 银河画廊(Three.js)
+       影集数据在页面底部 JS 的 ALBUMS 配置里改(封面图 / 每册照片 / 标题)
+       ============================================================ -->
+  <section class="galaxy" id="gallery">
+    <div class="galaxy__canvas" id="galaxyCanvas"></div>
+    <div class="galaxy__ui">
+      <div class="galaxy__count" id="albumCount"></div>
+      <div class="galaxy__hint">滚轮 / ← → 翻页 · Esc 返回</div>
+      <button class="galaxy__close" id="albumClose" aria-label="Close">&times;</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       依赖库(CDN):GSAP + ScrollTrigger + Lenis 平滑滚动
+       ============================================================ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+
+  <!-- 第三屏背景粒子的图源:照片降采样后内嵌为 base64(双击 file:// 打开也能采样像素) -->
+  <script src="img/bg-data.js"></script>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* —— Lenis 平滑滚动(对应参考里的 smoothWheel);提成全局,翻页时要暂停 —— */
+    let lenis;
+    function initSmoothScroll() {
+      lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add((t) => lenis.raf(t * 1000));
+      gsap.ticker.lagSmoothing(0);
+    }
+
+    /* —— type1 飞散动画(已从随机改为固定布局) ——
+       FIXED_LAYOUT: 每张图锁定的 x(左右,xPercent)、y(上下,yPercent)、z(远近,px)。
+       x/y 是"中点"值;动画时 x 随滚动从 中点-SPREAD 到 中点+SPREAD 展开,y、z 恒定。
+       想调布局用 index.html#edit 拖动(拖动同时改 x/y,滚轮改 z),再复制回本表。 */
+    const FIXED_LAYOUT = [
+      { z: 95, x: 2.3 }, { z: -1253, x: 19.5 }, { z: -648, x: -157.2 },
+      { z: -127, x: 222.5 }, { z: -579, x: -32.8 }, { z: -255, x: -318 },
+      { z: -2044, x: -128.9 }, { z: 36, x: -61.6 }, { z: -106, x: -80.2 },
+      { z: -544, x: -127.5 }, { z: -1339, x: -173.1 }, { z: -728, x: -112.6 },
+      { z: -1001, x: 85.8 }, { z: -2672, x: -122.3 }, { z: -652, x: 135.6 },
+      { z: -31, x: -256.9 }, { z: -622, x: -95.5 }, { z: -568, x: 1.8 },
+      { z: 48, x: 154.8 }, { z: 4, x: -136.6 }, { z: -927, x: -476.1 },
+      { z: -887, x: 247.9 }, { z: -1856, x: -342.9 }, { z: -723, x: -9.2 },
+      { z: -1589, x: -335.4 }, { z: -87, x: -29.3 }
+    ];
+    const SPREAD = 750;  // 每张图从中点向左/右各展开的幅度(越大飞散越夸张)
+
+    function applyType1(grid) {
+      const gridWrap = grid.querySelector('.grid-wrap');
+      const gridItems = grid.querySelectorAll('.grid__item');
+
+      grid.style.setProperty('--perspective', '1000px');
+      grid.style.setProperty('--grid-inner-scale', '0.5');
+
+      gsap.timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: gridWrap,
+          start: 'top bottom+=5%',
+          end: 'bottom top-=5%',
+          scrub: true
+        }
+      })
+      .set(gridWrap, { rotationY: 25 })
+      .set(gridItems, {
+        z: (i) => (FIXED_LAYOUT[i]?.z ?? 0),
+        yPercent: (i) => (FIXED_LAYOUT[i]?.y ?? 0)   // y 恒定(上下位置)
+      })
+      .fromTo(gridItems,
+        { xPercent: (i) => (FIXED_LAYOUT[i]?.x ?? 0) - SPREAD },
+        { xPercent: (i) => (FIXED_LAYOUT[i]?.x ?? 0) + SPREAD }, 0);
+      /* 内层不再做 scale 2→0.5(那会让 contain 在过程中忽大忽小/裁切);
+         图片以 100%+contain 始终完整显示 */
+    }
+
+    /* ============================================================
+       封面编辑模式:访问 index.html#edit 进入
+       - 每张图定格在"中点"位置(即 FIXED_LAYOUT 的 x/z),飞散动画暂停
+       - 鼠标拖动某张图 = 调它的 x(左右);在某张图上滚滚轮 = 调它的 z(远近)
+       - 点选某张图后,方向键 ←/→ 微调 x,↑/↓ 微调 z(按住 Shift 步长更大)
+       - 右上角面板:实时坐标 + 一键复制新的 FIXED_LAYOUT,粘回代码即固定
+       普通访问(不带 #edit)不会触发此模式,零影响。
+       ============================================================ */
+    function initEditMode(grid) {
+      const gridWrap = grid.querySelector('.grid-wrap');
+      const items = [...grid.querySelectorAll('.grid__item')];
+
+      grid.style.setProperty('--perspective', '1000px');
+      gsap.set(gridWrap, { rotationY: 25 });
+
+      // 把每张图摆到中点(x/z),并做出可拖动外观
+      // 编辑模式:真实布局(所见即所得),被盖住也能点 —— 靠“悬停置顶”解决遮挡:
+      // 鼠标移到哪张,哪张临时升到最上层,于是任何图都能点到、拖到。
+      const place = (i) => {
+        gsap.set(items[i], {
+          xPercent: FIXED_LAYOUT[i]?.x ?? 0,
+          z: FIXED_LAYOUT[i]?.z ?? 0
+        });
+        // 基础层级:越靠前(z 越大)默认越在上
+        items[i].style.zIndex = String(2000 + Math.round(FIXED_LAYOUT[i]?.z ?? 0));
+      };
+      items.forEach((it, i) => {
+        place(i);
+        it.style.cursor = 'grab';
+        it.style.outline = '1px dashed rgba(255,255,255,.25)';
+        // 序号角标
+        const tag = document.createElement('div');
+        tag.textContent = i + 1;
+        tag.style.cssText =
+          'position:absolute;top:4px;left:4px;z-index:20;padding:1px 6px;border-radius:4px;' +
+          'font:600 12px/1.4 Inter,sans-serif;background:rgba(0,0,0,.6);color:#fff;pointer-events:none;';
+        it.appendChild(tag);
+
+        // 悬停置顶:解决“被前面的图盖住点不到”——鼠标移上谁,谁临时升到最上层
+        it.addEventListener('pointerenter', () => {
+          if (drag) return;                 // 拖动中不抢层级
+          it.style.zIndex = '5000';
+        });
+        it.addEventListener('pointerleave', () => {
+          if (drag && drag.i === i) return; // 正拖这张,保持在上
+          it.style.zIndex = String(2000 + Math.round(FIXED_LAYOUT[i]?.z ?? 0));
+        });
+      });
+
+      // —— 面板 ——
+      const panel = document.createElement('div');
+      panel.style.cssText =
+        'position:fixed;top:12px;right:12px;z-index:9999;width:230px;padding:12px 14px;' +
+        'background:rgba(15,16,20,.92);border:1px solid rgba(255,255,255,.15);border-radius:10px;' +
+        'font:12px/1.5 Inter,sans-serif;color:#eee;backdrop-filter:blur(6px);';
+      panel.innerHTML =
+        '<div style="font-weight:600;margin-bottom:6px;">编辑模式 · 封面布局</div>' +
+        '<div style="opacity:.7;margin-bottom:8px;">悬停某图=临时置顶可点<br>拖动=调 x · 图上滚轮=调 z<br>点选后方向键微调(Shift 大步)</div>' +
+        '<div style="opacity:.7;margin-bottom:4px;">按序号选(被完全盖住也能选):</div>' +
+        '<div id="edNums" style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-bottom:8px;"></div>' +
+        '<div id="edSel" style="margin-bottom:8px;">未选中</div>' +
+        '<button id="edCopy" style="width:100%;padding:7px;border:0;border-radius:6px;cursor:pointer;' +
+        'background:#3b82f6;color:#fff;font-weight:600;">复制 FIXED_LAYOUT</button>' +
+        '<div id="edMsg" style="height:16px;margin-top:6px;color:#7ee787;"></div>';
+      document.body.appendChild(panel);
+      const selEl = panel.querySelector('#edSel');
+      const msgEl = panel.querySelector('#edMsg');
+
+      // 序号选择按钮(点全隐藏的图也能选中,再用方向键/滚轮调)
+      const numsEl = panel.querySelector('#edNums');
+      items.forEach((_, i) => {
+        const b = document.createElement('button');
+        b.textContent = i + 1;
+        b.dataset.i = i;
+        b.style.cssText =
+          'padding:3px 0;border:1px solid rgba(255,255,255,.18);border-radius:4px;cursor:pointer;' +
+          'background:transparent;color:#ddd;font:11px Inter,sans-serif;';
+        b.addEventListener('click', () => select(i));
+        numsEl.appendChild(b);
+      });
+
+      let selected = -1;
+      const showSel = () => {
+        if (selected < 0) { selEl.textContent = '未选中'; return; }
+        const d = FIXED_LAYOUT[selected];
+        selEl.innerHTML = '选中 #' + (selected + 1) +
+          ' &nbsp; x=' + d.x.toFixed(1) + ' &nbsp; z=' + Math.round(d.z);
+      };
+      const select = (i) => {
+        if (selected >= 0) {
+          items[selected].style.outline = '1px dashed rgba(255,255,255,.25)';
+          items[selected].style.zIndex = String(2000 + Math.round(FIXED_LAYOUT[selected]?.z ?? 0));
+        }
+        selected = i;
+        if (i >= 0) {
+          items[i].style.outline = '2px solid #3b82f6';
+          items[i].style.zIndex = '5000';   // 选中即置顶,方便看见/拖动(即使原本被盖住)
+        }
+        // 高亮对应序号按钮
+        numsEl.querySelectorAll('button').forEach(b => {
+          const on = +b.dataset.i === i;
+          b.style.background = on ? '#3b82f6' : 'transparent';
+          b.style.color = on ? '#fff' : '#ddd';
+        });
+        showSel();
+      };
+
+      // —— 拖动调 x —— (1px 屏幕位移 ≈ 换算成 xPercent:除以元素宽度*100)
+      let drag = null;
+      grid.addEventListener('pointerdown', (e) => {
+        const it = e.target.closest('.grid__item');
+        if (!it) return;
+        const i = items.indexOf(it);
+        select(i);
+        const w = it.getBoundingClientRect().width || 1;
+        drag = { i, startX: e.clientX, startVal: FIXED_LAYOUT[i].x, w };
+        it.setPointerCapture(e.pointerId);
+        it.style.cursor = 'grabbing';
+      });
+      grid.addEventListener('pointermove', (e) => {
+        if (!drag) return;
+        const dxPercent = (e.clientX - drag.startX) / drag.w * 100;
+        FIXED_LAYOUT[drag.i].x = +(drag.startVal + dxPercent).toFixed(1);
+        place(drag.i);
+        showSel();
+      });
+      const endDrag = () => {
+        if (drag) { items[drag.i].style.cursor = 'grab'; drag = null; }
+      };
+      grid.addEventListener('pointerup', endDrag);
+      grid.addEventListener('pointercancel', endDrag);
+
+      // —— 图上滚轮调 z ——
+      grid.addEventListener('wheel', (e) => {
+        const it = e.target.closest('.grid__item');
+        if (!it) return;
+        e.preventDefault();
+        const i = items.indexOf(it);
+        select(i);
+        FIXED_LAYOUT[i].z += (e.deltaY > 0 ? -1 : 1) * (e.shiftKey ? 120 : 30);
+        place(i);
+        showSel();
+      }, { passive: false });
+
+      // —— 方向键微调 ——
+      window.addEventListener('keydown', (e) => {
+        if (selected < 0) return;
+        const step = e.shiftKey ? 10 : 1;
+        const zStep = e.shiftKey ? 120 : 30;
+        let hit = true;
+        if (e.key === 'ArrowLeft')  FIXED_LAYOUT[selected].x = +(FIXED_LAYOUT[selected].x - step).toFixed(1);
+        else if (e.key === 'ArrowRight') FIXED_LAYOUT[selected].x = +(FIXED_LAYOUT[selected].x + step).toFixed(1);
+        else if (e.key === 'ArrowUp')    FIXED_LAYOUT[selected].z += zStep;
+        else if (e.key === 'ArrowDown')  FIXED_LAYOUT[selected].z -= zStep;
+        else hit = false;
+        if (hit) { e.preventDefault(); place(selected); showSel(); }
+      });
+
+      // —— 导出 ——
+      panel.querySelector('#edCopy').addEventListener('click', () => {
+        const rows = [];
+        for (let i = 0; i < FIXED_LAYOUT.length; i += 3) {
+          const cells = FIXED_LAYOUT.slice(i, i + 3).map(d =>
+            '{ z: ' + Math.round(d.z) + ', x: ' + (+d.x.toFixed(1)) + ' }');
+          rows.push('      ' + cells.join(', ') + ',');
+        }
+        let out = 'const FIXED_LAYOUT = [\n' + rows.join('\n');
+        out = out.replace(/,\s*$/, '') + '\n    ];';
+        navigator.clipboard.writeText(out).then(
+          () => { msgEl.textContent = '已复制!粘回代码替换即可'; },
+          () => { msgEl.textContent = '复制失败,见控制台'; console.log(out); }
+        );
+      });
+
+      console.log('[编辑模式] 已启用。调好后点“复制 FIXED_LAYOUT”,粘回 index.html 覆盖同名数组。');
+    }
+
+    /* ============================================================
+       第二屏 · 银河画廊(Three.js WebGL,改造自“可交互艺术画廊”)
+       - 去掉了原版的摄像头手势 / HUD / 外壳粒子
+       - 改成:自动慢转 + 鼠标悬停暂停高亮 + 点击进入该册圆柱翻页
+       ============================================================ */
+
+    /* —— 影集配置(12 册,来自 photo_wall/分组 的 12 个文件夹) ——
+       图片已复制并改成英文名到 img/albums/(aNN_MM.jpg),避免中文/空格/大小写在 file:// 下失效。
+       cover  = 该影集在银河环上的封面(现默认为该册第一张,想换封面改这里的路径即可)
+       photos = 打开后圆柱翻页的照片(顺序即文件夹内文件名排序;可自由增删)
+       换封面示例:把某册 cover 改成它 photos 里想要的那一张,如 cover:'img/albums/a01_03.jpg' */
+    const ALBUMS = [
+      { title: 'Guitar Girl', subtitle: 'Series 01', cover: 'img/albums/a01_01.jpg', photos: ['img/albums/a01_01.jpg','img/albums/a01_02.jpg','img/albums/a01_03.jpg','img/albums/a01_04.jpg','img/albums/a01_05.jpg'] },
+      { title: 'Vintage Republic', subtitle: 'Series 02', cover: 'img/albums/a03_01.jpg', photos: ['img/albums/a03_01.jpg','img/albums/a03_02.jpg','img/albums/a03_03.jpg','img/albums/a03_04.jpg','img/albums/a03_05.jpg','img/albums/a03_06.jpg','img/albums/a03_07.jpg','img/albums/a03_08.jpg','img/albums/a03_09.jpg','img/albums/a03_10.jpg'] },
+      { title: 'Rooftop', subtitle: 'Series 03', cover: 'img/albums/a04_01.jpg', photos: ['img/albums/a04_01.jpg','img/albums/a04_02.jpg'] },
+      { title: 'Life of Trees', subtitle: 'Series 04', cover: 'img/albums/a05_01.jpg', photos: ['img/albums/a05_01.jpg','img/albums/a05_02.jpg','img/albums/a05_03.jpg'] },
+      { title: 'Graduation II', subtitle: 'Series 05', cover: 'img/albums/a06_01.jpg', photos: ['img/albums/a06_01.jpg','img/albums/a06_02.jpg','img/albums/a06_03.jpg','img/albums/a06_04.jpg','img/albums/a06_05.jpg','img/albums/a06_06.jpg','img/albums/a06_07.jpg','img/albums/a06_08.jpg'] },
+      { title: 'Graduation III', subtitle: 'Series 06', cover: 'img/albums/a07_01.jpg', photos: ['img/albums/a07_01.jpg','img/albums/a07_02.jpg','img/albums/a07_03.jpg','img/albums/a07_04.jpg'] },
+      { title: 'Rain Priestess', subtitle: 'Series 07', cover: 'img/albums/a08_01.jpg', photos: ['img/albums/a08_01.jpg','img/albums/a08_02.jpg','img/albums/a08_03.jpg','img/albums/a08_04.jpg'] },
+      { title: 'Autumn Cypress', subtitle: 'Series 08', cover: 'img/albums/a09_01.jpg', photos: ['img/albums/a09_01.jpg','img/albums/a09_02.jpg','img/albums/a09_03.jpg','img/albums/a09_04.jpg','img/albums/a09_05.jpg','img/albums/a09_06.jpg','img/albums/a09_07.jpg'] },
+      { title: 'Suits', subtitle: 'Series 09', cover: 'img/albums/a11_01.jpg', photos: ['img/albums/a11_01.jpg','img/albums/a11_02.jpg','img/albums/a11_03.jpg','img/albums/a11_04.jpg','img/albums/a11_05.jpg','img/albums/a11_06.jpg','img/albums/a11_07.jpg','img/albums/a11_08.jpg'] },
+      { title: 'Bell Tower', subtitle: 'Series 10', cover: 'img/albums/a12_01.jpg', photos: ['img/albums/a12_01.jpg','img/albums/a12_02.jpg','img/albums/a12_03.jpg'] },
+    ];
+    /* (已弃用)旧版画幅固定比例;现在封面/翻页照片都按各自原图真实比例显示,不再压扁。保留仅为兼容。 */
+    const RATIO = { w: 3, h: 2 };
+
+    /* 第三屏背景粒子的来源图(学自“可交互艺术画廊”的“换封面→粒子效果”):
+       图源来自 img/bg-data.js(照片降采样后的 base64 data URI),
+       双击 file:// 打开也能被 getImageData 采样;想换图重新生成该文件即可。 */
+    const BG_IMAGE = window.BG_IMAGE || '';
+
+    function initGalaxy() {
+      const container = document.getElementById('galaxyCanvas');
+      const galaxyEl  = document.querySelector('.galaxy');
+      const W = () => window.innerWidth, H = () => window.innerHeight;
+
+      /* ---------- 场景 ---------- */
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x020202, 0.0003);
+      const camera = new THREE.PerspectiveCamera(50, W() / H(), 1, 5000);
+      camera.position.set(0, 0, 1050);
+      camera.lookAt(0, 0, 0);
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(W(), H());
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2(-2, -2);   // 初始放在屏幕外
+
+      /* ---------- 柔和粒子贴图(星尘 / 背景粒子共用) ---------- */
+      function softTexture() {
+        const c = document.createElement('canvas'); c.width = c.height = 32;
+        const x = c.getContext('2d');
+        const g = x.createRadialGradient(16, 16, 0, 16, 16, 16);
+        g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        x.fillStyle = g; x.fillRect(0, 0, 32, 32);
+        return new THREE.CanvasTexture(c);
+      }
+
+      /* ---------- 背景 A:星尘浮游粒子(始终可见,缓慢上浮) ---------- */
+      const ambient = (() => {
+        const geo = new THREE.BufferGeometry();
+        const count = 1200;
+        const pos = [], speed = [];
+        for (let i = 0; i < count; i++) {
+          pos.push((Math.random() - 0.5) * 2600, (Math.random() - 0.5) * 1800, (Math.random() - 0.5) * 2600);
+          speed.push(Math.random() * 0.5 + 0.1);
+        }
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        geo.setAttribute('speed', new THREE.Float32BufferAttribute(speed, 1));
+        const points = new THREE.Points(geo, new THREE.PointsMaterial({
+          color: 0x9aa7c0, size: 4, map: softTexture(), transparent: true, opacity: 0.5,
+          sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false
+        }));
+        scene.add(points);
+        return points;
+      })();
+
+      /* ============================================================
+         背景 B:封面 → 粒子云(学自“可交互艺术画廊”的“换封面→粒子效果”)
+         把一张图片的像素采样成一团会呼吸的彩色粒子,作为第三屏的背景。
+         想换背景图:把上面 BG_IMAGE 改成 'img/你的图.jpg';留空则用生成的星云。
+         ============================================================ */
+      // 粒子材质:顶点着色器带“呼吸”与 bloom 发散(uBloom 越大越散开)
+      function makeParticleMaterial() {
+        const c = document.createElement('canvas'); c.width = c.height = 32;
+        const x = c.getContext('2d');
+        const g = x.createRadialGradient(16, 16, 0, 16, 16, 16);
+        g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.5, 'rgba(255,255,255,0.9)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        x.fillStyle = g; x.fillRect(0, 0, 32, 32);
+        return new THREE.ShaderMaterial({
+          uniforms: { uTime: { value: 0 }, uBloom: { value: 0.12 }, uTexture: { value: new THREE.CanvasTexture(c) } },
+          vertexShader: `
+            uniform float uTime; uniform float uBloom;
+            attribute vec3 initialPos; attribute float size; attribute vec3 color; attribute float aRandom;
+            varying vec3 vColor;
+            void main(){
+              vColor = color; vec3 pos = initialPos; vec3 dir = normalize(initialPos);
+              float explode = smoothstep(0.0, 1.0, uBloom);
+              float breath = sin(uTime * 2.0 + initialPos.x * 0.01 + initialPos.y * 0.01) * (1.0 - explode);
+              pos += dir * breath * 3.0;
+              float dist = explode * (500.0 + aRandom * 500.0);
+              float ang = uBloom * aRandom * 3.0; float s = sin(ang), cc = cos(ang);
+              float nx = pos.x * cc - pos.y * s; float ny = pos.x * s + pos.y * cc; pos.x = nx; pos.y = ny;
+              pos += dir * dist;
+              vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+              gl_PointSize = size * (800.0 / -mv.z);
+              gl_Position = projectionMatrix * mv;
+            }`,
+          fragmentShader: `
+            varying vec3 vColor; uniform float uBloom; uniform sampler2D uTexture;
+            void main(){
+              vec4 t = texture2D(uTexture, gl_PointCoord); if (t.a < 0.1) discard;
+              gl_FragColor = vec4(vColor, 0.4 * (1.0 - uBloom * 0.5) * t.a);  // 0.4 → 整体更淡
+            }`,
+          transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+        });
+      }
+      // 采样图片(或生成的星云 canvas)像素 → 粒子几何
+      function imageToParticles(img) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const scale = 0.5;
+        canvas.width = Math.max(1, Math.floor(img.width * scale));
+        canvas.height = Math.max(1, Math.floor(img.height * scale));
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        const positions = [], initialPos = [], colors = [], sizes = [], randomness = [];
+        const density = 1;              // 采样步长 1 → 更密更满
+        const spread = 8;             // 像素间距放大 → 更大,铺满更多屏幕
+        for (let y = 0; y < canvas.height; y += density) {
+          for (let x = 0; x < canvas.width; x += density) {
+            const i = (y * canvas.width + x) * 4;
+            const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+            const bright = r * 0.3 + g * 0.65 + b * 0.11;
+            if (bright > 0.03) {         // 连更暗的像素也收进来 → 更满
+              const px = (x - canvas.width / 2) * spread, py = -(y - canvas.height / 2) * spread, pz = bright * 15;
+              positions.push(px, py, pz); initialPos.push(px, py, pz);
+              colors.push(r, g, b); sizes.push(bright * 6.0 + 3.0); randomness.push(Math.random());
+            }
+          }
+        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('initialPos', new THREE.Float32BufferAttribute(initialPos, 3));
+        geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        geo.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+        geo.setAttribute('aRandom', new THREE.Float32BufferAttribute(randomness, 1));
+        geo.center();
+        return geo;
+      }
+      const bgParticles = new THREE.Group();
+      bgParticles.position.z = -650;   // 推到影集环后面当背景
+      scene.add(bgParticles);
+      const particleMat = makeParticleMaterial();
+      function buildBgParticles(src) {
+        while (bgParticles.children.length) bgParticles.remove(bgParticles.children[0]);
+        bgParticles.add(new THREE.Points(imageToParticles(src), particleMat));
+      }
+      if (BG_IMAGE) {
+        const im = new Image();                  // data URI:无需 crossOrigin,可被 getImageData 采样
+        im.onload = () => buildBgParticles(im);  // 采样照片像素 → 呼吸粒子云
+        im.src = BG_IMAGE;
+      }
+      // 没有背景图时:不生成任何背景粒子云(仅保留下方散布星尘 ambient,非环状)
+
+      /* ---------- 画廊环 shader:柔和圆角边缘(参考「可交互艺术画廊」原版效果) ---------- */
+      const VERT = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+      const FRAG = `
+        uniform sampler2D uTexture; uniform float uTime; uniform float uOpacity; uniform float uSelected; varying vec2 vUv;
+        float random(vec2 st){ return fract(sin(dot(st.xy, vec2(12.9898,78.233)))*43758.5453123); }
+        float noise(vec2 st){
+          vec2 i=floor(st); vec2 f=fract(st);
+          float a=random(i); float b=random(i+vec2(1.,0.)); float c=random(i+vec2(0.,1.)); float d=random(i+vec2(1.,1.));
+          vec2 u=f*f*(3.-2.*f);
+          return mix(a,b,u.x)+(c-a)*u.y*(1.-u.x)+(d-b)*u.x*u.y;
+        }
+        void main(){
+          vec4 texColor=texture2D(uTexture,vUv); vec3 finalColor=texColor.rgb;
+          // 柔化边缘遮罩(噪声+呼吸),再按 uSelected 连续过渡到“整幅清晰(1.0)”
+          vec2 c=abs(vUv-0.5)*2.0; float shape=pow(c.x,3.0)+pow(c.y,3.0);
+          float n=noise(vUv*10.0+uTime*0.3)*0.15; float dist=shape+n; float breath=sin(uTime*2.0)*0.03;
+          float softMask=1.0-smoothstep(0.7+breath,1.1+breath,dist);
+          float sel=smoothstep(0.0,1.0,uSelected);   // 让 0→1 的过渡更顺滑(ease)
+          float mask=mix(softMask,1.0,sel);
+          gl_FragColor=vec4(finalColor, texColor.a*uOpacity*mask);
+        }`;
+      function makeMaterial(tex) {
+        return new THREE.ShaderMaterial({
+          uniforms: { uTexture: { value: tex }, uTime: { value: 0 }, uOpacity: { value: 0.9 }, uSelected: { value: 0.0 } },
+          vertexShader: VERT, fragmentShader: FRAG, transparent: true, side: THREE.DoubleSide
+        });
+      }
+
+      /* ---------- 纹理:有图加载图,没图用渐变占位 ----------
+         onReady(w,h) 会在图片真正解码后回调其像素宽高,
+         用来把方形 plane 按原图比例“装”进去(fit),既不压扁也不裁切。 */
+      const loader = new THREE.TextureLoader();
+      function gradientTex(i) {
+        const c = document.createElement('canvas'); c.width = c.height = 400;
+        const x = c.getContext('2d'); const g = x.createLinearGradient(0, 0, 400, 400);
+        g.addColorStop(0, `hsl(${i * 40}, 45%, 22%)`); g.addColorStop(1, '#050507');
+        x.fillStyle = g; x.fillRect(0, 0, 400, 400);
+        return new THREE.CanvasTexture(c);
+      }
+      function getTexture(url, i, onReady) {
+        if (!url) return gradientTex(i);
+        return loader.load(url, (tex) => {
+          const img = tex.image;
+          if (onReady && img && img.width) onReady(img.width, img.height);
+        });
+      }
+      /* 把 base(方形)按图片真实比例收缩:长边保持 base,短边按比例缩小 → 原比例、不压扁 */
+      function fitToRatio(obj, base, w, h) {
+        const r = w / h;
+        if (r >= 1) obj.scale.set(1, 1 / r, 1);   // 横图:压低高度
+        else        obj.scale.set(r, 1, 1);       // 竖图:收窄宽度
+      }
+
+      /* ---------- 画廊环(册数 = ALBUMS.length,环半径随册数自动变大) ----------
+         每册用一个 pivot(承载“原比例修正”)+ mesh(承载悬停放大),互不干扰 */
+      const galleryGroup = new THREE.Group(); scene.add(galleryGroup);
+      const count = ALBUMS.length;
+      const radius = Math.max(460, count * 58);   // 系数调小:环更紧凑
+      const base = 190;                            // 封面统一“最大边”(方形基准)
+      ALBUMS.forEach((a, i) => {
+        const pivot = new THREE.Group();           // 只负责按原图比例缩放
+        const mesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(base, base),
+          makeMaterial(getTexture(a.cover, i, (w, h) => fitToRatio(pivot, base, w, h)))
+        );
+        pivot.add(mesh);
+        const ang = (i / count) * Math.PI * 2;
+        const x = Math.sin(ang) * radius, z = Math.cos(ang) * radius, y = -20;
+        pivot.position.set(x, y, z);
+        pivot.lookAt(x * 2, y, z * 2);            // 面朝外(在正前方时正对相机)
+        mesh.userData = { id: i };
+        galleryGroup.add(pivot);
+      });
+
+      /* ---------- 状态 ---------- */
+      let mode = 'ring';                          // 'ring' | 'album'
+      let hovered = null;
+      let rotSpeed = 0.0016;                      // 自动慢转速度
+      let wheelBoost = 0;                         // 滚轮加速量(逐帧衰减)
+      let photoGroup = null, photoPlanes = [], photoIndex = 0, wheelLock = false;
+      const albumCountEl = document.getElementById('albumCount');
+
+      /* ---------- 打开影集 → 进入圆柱翻页 ---------- */
+      function layoutPhotos() {
+        const spacing = 380, depth = 190;
+        photoPlanes.forEach((m, j) => {
+          const off = j - photoIndex, abs = Math.abs(off);
+          m.userData.targetPos.set(off * spacing, 0, 520 - abs * depth);
+          m.userData.targetRotY = -off * 0.5;
+          const sc = off === 0 ? 1.15 : 0.82;
+          const fit = m.userData.fit;             // 原图比例修正(fit.sx / fit.sy)
+          m.userData.targetScale.set(sc * fit.sx, sc * fit.sy, sc);
+          m.userData.targetOpacity = abs > 3 ? 0 : (off === 0 ? 1 : 0.32);
+          m.userData.targetSel = off === 0 ? 1.0 : 0.0;   // 清晰⇄柔化边缘:改为渐变(见渲染循环)
+        });
+        albumCountEl.textContent =
+          `${String(photoIndex + 1).padStart(2,'0')} / ${String(photoPlanes.length).padStart(2,'0')}`;
+      }
+      function stepPhoto(d) {
+        photoIndex = Math.max(0, Math.min(photoPlanes.length - 1, photoIndex + d));
+        layoutPhotos();
+      }
+      function openAlbum(i) {
+        const album = ALBUMS[i];
+        mode = 'album';
+        galaxyEl.classList.add('album-open');
+        hovered = null; document.body.style.cursor = 'default';
+        galleryGroup.visible = false;
+
+        photoGroup = new THREE.Group(); scene.add(photoGroup);
+        const pw = 300, ph = 300;                 // 方形基准,加载后按原图比例 fit
+        photoPlanes = album.photos.map((p, j) => {
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(pw, ph),
+            makeMaterial(getTexture(p, j + 100, (w, h) => {
+              const r = w / h;
+              m.userData.fit = r >= 1 ? { sx: 1, sy: 1 / r } : { sx: r, sy: 1 };
+              layoutPhotos();                     // 拿到真实比例后重排,消除压扁
+            })));
+          m.userData = { targetPos: new THREE.Vector3(), targetScale: new THREE.Vector3(1, 1, 1),
+                         targetRotY: 0, targetOpacity: 1, targetSel: 0, id: j, fit: { sx: 1, sy: 1 } };
+          photoGroup.add(m); return m;
+        });
+        photoIndex = 0; layoutPhotos();
+        if (lenis) lenis.stop();
+      }
+      function closeAlbum() {
+        mode = 'ring';
+        galaxyEl.classList.remove('album-open');
+        if (photoGroup) {
+          scene.remove(photoGroup);
+          photoPlanes.forEach(m => { m.geometry.dispose(); m.material.dispose(); });
+          photoGroup = null; photoPlanes = [];
+        }
+        galleryGroup.visible = true;
+        if (lenis) lenis.start();
+      }
+
+      /* ---------- 鼠标 / 键盘 ---------- */
+      const dom = renderer.domElement;
+      dom.addEventListener('mousemove', (e) => {
+        const r = dom.getBoundingClientRect();
+        mouse.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+        mouse.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+      });
+      dom.addEventListener('mouseleave', () => mouse.set(-2, -2));
+      dom.addEventListener('click', () => {
+        if (mode === 'ring' && hovered) openAlbum(hovered.userData.id);
+      });
+      dom.addEventListener('wheel', (e) => {
+        if (mode === 'ring') {                   // 环模式:滚轮 = 给旋转加速(不拦截页面滚动)
+          const dir = e.deltaY > 0 ? 1 : -1;
+          wheelBoost += dir * 0.006;
+          wheelBoost = Math.max(-0.06, Math.min(0.06, wheelBoost));
+          return;
+        }
+        e.preventDefault();
+        if (wheelLock) return;
+        wheelLock = true; setTimeout(() => wheelLock = false, 520);
+        stepPhoto(e.deltaY > 0 ? 1 : -1);
+      }, { passive: false });
+      document.getElementById('albumClose').addEventListener('click', closeAlbum);
+      window.addEventListener('keydown', (e) => {
+        if (mode !== 'album') return;
+        if (e.key === 'Escape') closeAlbum();
+        else if (e.key === 'ArrowRight') stepPhoto(1);
+        else if (e.key === 'ArrowLeft')  stepPhoto(-1);
+      });
+      window.addEventListener('resize', () => {
+        camera.aspect = W() / H(); camera.updateProjectionMatrix(); renderer.setSize(W(), H());
+      });
+
+      /* ---------- 渲染循环(仅在视口内运行,省电) ---------- */
+      let running = false, raf, t = 0;
+      function frame() {
+        t += 0.016;
+
+        // 背景粒子云:仅保留呼吸(uTime),固定在一个平面不旋转
+        particleMat.uniforms.uTime.value = t;
+
+        // 星尘缓慢上浮 + 横向漂移
+        const ap = ambient.geometry.attributes.position.array;
+        const sp = ambient.geometry.attributes.speed.array;
+        for (let i = 0; i < ap.length; i += 3) {
+          ap[i + 1] += sp[i / 3] * 0.4;
+          if (ap[i + 1] > 900) ap[i + 1] = -900;
+          ap[i] += Math.sin(t * 0.5 + i) * 0.15;
+        }
+        ambient.geometry.attributes.position.needsUpdate = true;
+
+        // shader 时间
+        galleryGroup.children.forEach(pivot => pivot.children[0].material.uniforms.uTime.value = t);
+        photoPlanes.forEach(m => m.material.uniforms.uTime.value = t);
+
+        if (mode === 'ring') {
+          // 悬停检测(galleryGroup.children 现在是 pivot,需递归到子 mesh)
+          raycaster.setFromCamera(mouse, camera);
+          const hits = raycaster.intersectObjects(galleryGroup.children, true);
+          if (hits.length) {
+            if (hovered !== hits[0].object) { hovered = hits[0].object; document.body.style.cursor = 'pointer'; }
+          } else if (hovered) { hovered = null; document.body.style.cursor = 'default'; }
+
+          // 悬停暂停旋转
+          const target = hovered ? 0 : 0.0016;
+          rotSpeed += (target - rotSpeed) * 0.06;
+          galleryGroup.rotation.y += rotSpeed + wheelBoost;
+          wheelBoost *= 0.94;                     // 滚轮加速逐帧衰减,平滑回到常速
+
+          // 悬停高亮:非悬停略透明;放大只作用在 mesh 上(pivot 保留原比例)
+          galleryGroup.children.forEach(pivot => {
+            const m = pivot.children[0];
+            const op = (m === hovered) ? 1.0 : 0.6;
+            m.material.uniforms.uOpacity.value += (op - m.material.uniforms.uOpacity.value) * 0.1;
+            const s = (m === hovered) ? 1.12 : 1.0;
+            m.scale.lerp(new THREE.Vector3(s, s, s), 0.12);
+          });
+        }
+
+        if (mode === 'album') {
+          const k = 0.06;   // 翻页缓动系数:越小越柔(带自然减速收尾,消除“硬切”)
+          photoPlanes.forEach(m => {
+            m.position.lerp(m.userData.targetPos, k);
+            m.scale.lerp(m.userData.targetScale, k);
+            m.rotation.y += (m.userData.targetRotY - m.rotation.y) * k;
+            const u = m.material.uniforms;
+            u.uOpacity.value  += (m.userData.targetOpacity - u.uOpacity.value) * k;
+            // 清晰⇄柔化边缘平滑过渡:不再随翻页“啪”一下变清楚
+            u.uSelected.value += (m.userData.targetSel - u.uSelected.value) * k;
+          });
+        }
+
+        renderer.render(scene, camera);
+        raf = requestAnimationFrame(frame);
+      }
+
+      new IntersectionObserver((entries) => {
+        entries.forEach(en => {
+          if (en.isIntersecting) { if (!running) { running = true; frame(); } }
+          else { running = false; cancelAnimationFrame(raf); if (mode === 'album') closeAlbum(); }
+        });
+      }, { threshold: 0.02 }).observe(galaxyEl);
+    }
+
+    window.addEventListener('load', () => {
+      initSmoothScroll();
+      const cover = document.querySelector('.grid--cover');
+      if (location.hash === '#edit') {
+        initEditMode(cover);     // 访问 index.html#edit:进入拖动微调模式(不跑飞散动画)
+      } else {
+        applyType1(cover);       // 正常访问:滚动飞散动画
+      }
+      initGalaxy();
+      document.body.classList.remove('loading');
+    });
+  </script>
+</body>
+</html>
